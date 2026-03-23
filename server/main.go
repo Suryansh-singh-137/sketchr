@@ -7,6 +7,7 @@ import (
 
 	"github.com/Suryansh-singh-137/sketchr-server/handlers"
 	"github.com/Suryansh-singh-137/sketchr-server/hub"
+	"github.com/Suryansh-singh-137/sketchr-server/room"
 )
 
 func main() {
@@ -27,7 +28,9 @@ func main() {
       http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
         handlers.ServeWs(w, r, h)
     })
-
+rm := room.NewRoomManager()
+r := rm.CreateRoom()
+fmt.Println("Room created:", r.ID)
     fmt.Println("Server running on :8080")
     log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -2,6 +2,7 @@ package room
 
 import (
 	"math/rand"
+	"sync"
 
 	"github.com/Suryansh-singh-137/sketchr-server/hub"
 )
@@ -38,4 +39,24 @@ func NewRoom() *Room{
 	MaxPlayers:  8,
 	IsGameActive:  false,
  }
+} 
+//  room  manager struct  code -> room struct
+type RoomManager struct{
+	Rooms map[string]*Room
+	mu sync.Mutex
+}
+// newroommanager  
+func NewRoomManager() *RoomManager {
+	return &RoomManager{
+		Rooms: make(map[string]*Room),
+	}
+}
+// creatoing a new room  
+func (rm *RoomManager) CreateRoom() *Room{
+	
+	room:=NewRoom()
+	rm.mu.Lock()
+	rm.Rooms[room.ID] =room
+		defer rm.mu.Unlock()
+return  room
 }
