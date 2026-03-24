@@ -60,3 +60,25 @@ func (rm *RoomManager) CreateRoom() *Room{
 		defer rm.mu.Unlock()
 return  room
 }
+
+func (rm *RoomManager) GetRoom(id string) (*Room, bool) {
+  rm.mu.Lock()
+	room ,exists:= rm.Rooms[id]
+	defer  rm.mu.Unlock()
+	return room ,exists
+}
+//  fxn to run the room whix is crearted 
+func (r *Room) Run(){
+	for{
+		select {
+		case Clients :=  <- r.Register:
+			r.Clients[Clients] = true
+		case Client  := <-r.Unregister :
+			delete(r.Clients,Client)
+		case message := <- r.Broadcast:
+		for client := range r.Clients {
+    client.Send <- message
+}
+		}
+	}
+}
