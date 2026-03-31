@@ -3,6 +3,10 @@ import { useEffect, useRef, useState } from "react";
 interface CanvasProps {
   roomId: string;
   username: string;
+  wsRef: React.MutableRefObject<WebSocket | null>;
+  lastStroke: StrokeData | null;
+  shouldClear: boolean;
+  onClearDone: () => void;
 }
 interface StrokeData {
   type: string;
@@ -13,37 +17,32 @@ interface StrokeData {
   color: string;
   size: number;
 }
-export default function Canvas({ roomId, username }: CanvasProps) {
+export default function Canvas({
+  roomId,
+  username,
+  wsRef,
+  lastStroke,
+  shouldClear,
+  onClearDone,
+}: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState("#000000");
   const [brushSize, setBrushSize] = useState(4);
   const lastPos = useRef({ x: 0, y: 0 });
-  const wsRef = useRef<WebSocket | null>(null);
   useEffect(() => {
-    const ws = new WebSocket(`ws://localhost:8080/ws?room=${roomId}`);
-    wsRef.current = ws;
-
-    ws.onopen = () => console.log("WebSocket connected!");
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === "draw") {
-        drawStroke(data);
-      }
-      if (data.type === "clear") {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
-    };
-
-    return () => {
-      ws.close();
-      wsRef.current = null;
-    };
-  }, [roomId]);
+    if (!lastStroke) return;
+    drawStroke(lastStroke);
+  }, [lastStroke]);
+  useEffect(() => {
+    if (!shouldClear) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    onClearDone();
+  }, [shouldClear]);
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setIsDrawing(true);

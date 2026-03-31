@@ -3,9 +3,21 @@ import Canvas from "@/components/Canvas";
 import Chat from "@/components/ChatTemp";
 import { useParams, useSearchParams } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
+// ye add karo imports ke neeche
+interface StrokeData {
+  type: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  color: string;
+  size: number;
+}
 export default function GamePage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const [lastStroke, setLastStroke] = useState<StrokeData | null>(null);
+  const [shouldClear, setShouldClear] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const [messages, setMessages] = useState<
     { username: string; message: string; type: "chat" | "system" }[]
@@ -30,13 +42,26 @@ export default function GamePage() {
       if (data.type === "chat") {
         setMessages((prev) => [...prev, data]);
       }
+      if (data.type === "draw") {
+        setLastStroke(data);
+      }
+      if (data.type === "clear") {
+        setShouldClear(true);
+      }
     };
 
     return () => ws.close();
   }, [roomId]);
   return (
     <main className="flex items-center justify-center gap-4 min-h-screen bg-zinc-950">
-      <Canvas roomId={roomId} username={username} />
+      <Canvas
+        roomId={roomId}
+        username={username}
+        wsRef={wsRef}
+        lastStroke={lastStroke}
+        shouldClear={shouldClear}
+        onClearDone={() => setShouldClear(false)}
+      />
       <Chat messages={messages} onSend={sendChat} />
     </main>
   );
