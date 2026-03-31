@@ -36,11 +36,7 @@ export default function GamePage() {
   }, [roomId]);
   return (
     <main className="flex items-center justify-center gap-4 min-h-screen bg-zinc-950">
-      <Canvas
-        roomId={roomId}
-        username={username}
-        onChatMessage={(msg) => setMessages((prev) => [...prev, msg])}
-      />
+      <Canvas roomId={roomId} username={username} />
       <Chat messages={messages} onSend={sendChat} />
     </main>
   );

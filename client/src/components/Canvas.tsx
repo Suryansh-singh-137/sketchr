@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 interface CanvasProps {
   roomId: string;
   username: string;
-  onChatMessage: (msg: ChatMessage) => void;
 }
 interface StrokeData {
   type: string;
@@ -14,16 +13,7 @@ interface StrokeData {
   color: string;
   size: number;
 }
-interface ChatMessage {
-  username: string;
-  message: string;
-  type: "chat" | "system";
-}
-export default function Canvas({
-  roomId,
-  username,
-  onChatMessage,
-}: CanvasProps) {
+export default function Canvas({ roomId, username }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState("#000000");
@@ -46,9 +36,6 @@ export default function Canvas({
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
-      if (data.type === "chat") {
-        onChatMessage(data);
       }
     };
 
