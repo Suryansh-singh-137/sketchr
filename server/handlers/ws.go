@@ -18,6 +18,7 @@ var upgrader = websocket.Upgrader{
 
 func ServeWs(w http.ResponseWriter, r *http.Request,  rm *room.RoomManager) {
     code:= r.URL.Query().Get("room");
+      username:= r.URL.Query().Get("username");
     if code == ""{
   http.Error(w, "code cannot be empty", http.StatusInternalServerError)
   return 
@@ -41,10 +42,16 @@ func ServeWs(w http.ResponseWriter, r *http.Request,  rm *room.RoomManager) {
     
 c := hub.Client{
     ID:   fmt.Sprintf("%d", time.Now().UnixNano()),
+       Username: username,
     Conn: connection,
     Send: make(chan []byte, 236),
 }
 foundRoom.Register <- &c
  go c.ReadPump(foundRoom.Broadcast,foundRoom.Unregister)
 go c.WritePump()  
+// registering the joined user ,username so that we can retrieve it in fromtend if the page gets reloaded during lobby 
+if username == "" {
+    username = "Anonymous"
+}
+foundRoom.Players = append(foundRoom.Players, username)
 }

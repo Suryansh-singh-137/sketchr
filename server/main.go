@@ -26,6 +26,7 @@ func enableCORS(next http.HandlerFunc) http.HandlerFunc {
 }
 func main() {
 rm := room.NewRoomManager()
+// for creating a room 
 http.HandleFunc("/room/create", enableCORS(func(w http.ResponseWriter, r *http.Request) {
       host := r.URL.Query().Get("username")
       if host == "" {
@@ -35,6 +36,19 @@ http.HandleFunc("/room/create", enableCORS(func(w http.ResponseWriter, r *http.R
     go room.Run()
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(map[string]string{"roomId": room.ID})
+}))
+// for retreiveing palyers who have joioned a romm 
+http.HandleFunc("/room/players", enableCORS(func(w http.ResponseWriter, r *http.Request) {
+    roomId := r.URL.Query().Get("room")
+    room, exists := rm.GetRoom(roomId)
+    if !exists {
+        http.Error(w, "room not found", http.StatusNotFound)
+        return
+    }
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]interface{}{
+        "players": room.Players,
+    })
 }))
 
     http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {

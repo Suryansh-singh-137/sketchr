@@ -82,8 +82,15 @@ func (r *Room) Run(){
 		select {
 		case Clients :=  <- r.Register:
 			r.Clients[Clients] = true
-		case Client  := <-r.Unregister :
-			delete(r.Clients,Client)
+	case client := <-r.Unregister:
+    delete(r.Clients, client)
+    // Players slice se username hatao
+    for i, p := range r.Players {
+        if p == client.Username {
+            r.Players = append(r.Players[:i], r.Players[i+1:]...)
+            break
+        }
+    }
 		case message := <- r.Broadcast:
 		for client := range r.Clients {
     client.Send <- message

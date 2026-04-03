@@ -6,6 +6,7 @@ import (
 
 type Client struct {
 	ID   string
+    Username string
 	Conn *websocket.Conn
 	Send chan []byte  
 }
