@@ -8,12 +8,15 @@ export default function Home() {
   const router = useRouter();
 
   const handleCreateRoom = async () => {
-    const response = await fetch("http://localhost:8080/room/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `http://localhost:8080/room/create?username=${username}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
     const data = await response.json();
     const roomID = data.roomId;
     router.push(`/game/${roomID}?username=${username}`);
