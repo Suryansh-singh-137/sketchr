@@ -27,7 +27,11 @@ func enableCORS(next http.HandlerFunc) http.HandlerFunc {
 func main() {
 rm := room.NewRoomManager()
 http.HandleFunc("/room/create", enableCORS(func(w http.ResponseWriter, r *http.Request) {
-    room := rm.CreateRoom()
+      host := r.URL.Query().Get("username")
+      if host == "" {
+        host = "Anonymous"
+    }
+    room := rm.CreateRoom(host)
     go room.Run()
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(map[string]string{"roomId": room.ID})

@@ -15,6 +15,10 @@ type Room struct {
 	Unregister   chan *hub.Client `json:"unregister"`
 	MaxPlayers   int `json:"maxplayer"` 
 	IsGameActive bool `json:"isgameactive"` 
+	DrawTime int  `json:"drawtime"` 
+	Rounds   int  `json:"rounds"` 
+	Host  string `json:"host"` 
+	Players  []string  `json:"players"` 
 }
 // genrate a uniue  room code of 6 charcter 
 
@@ -29,7 +33,7 @@ for i := 0; i <= 1; i++ {
  return  code
 }
 //  new room is getting created with fresh id  ,maxplayer  , and channel intialising for tht particular room 
-func NewRoom() *Room{
+func NewRoom(host string) *Room{
  return   &Room{
 	ID:  generateRoomCode(),
 	Clients:  make(map[*hub.Client]bool),
@@ -38,6 +42,11 @@ func NewRoom() *Room{
 	Unregister: make(chan *hub.Client),
 	MaxPlayers:  8,
 	IsGameActive:  false,
+	DrawTime: 80,
+Rounds:   3,
+Host: host,
+Players:  []string{},
+
  }
 } 
 //  room  manager struct  code -> room struct
@@ -52,9 +61,9 @@ func NewRoomManager() *RoomManager {
 	}
 }
 // creatoing a new room  
-func (rm *RoomManager) CreateRoom() *Room{
+func (rm *RoomManager) CreateRoom(host string) *Room{
 	
-	room:=NewRoom()
+	room:=NewRoom(host)
 	rm.mu.Lock()
 	rm.Rooms[room.ID] =room
 		defer rm.mu.Unlock()
