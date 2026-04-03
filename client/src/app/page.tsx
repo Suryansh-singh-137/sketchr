@@ -19,13 +19,13 @@ export default function Home() {
     );
     const data = await response.json();
     const roomID = data.roomId;
-    router.push(`/game/${roomID}?username=${username}`);
+    router.push(`/lobby/${roomID}?username=${username}&host=true`);
   };
 
   const handleJoinRoom = () => {
     // router.push to game page with roomCode and username
     if (!roomCode || !username) return;
-    router.push(`/game/${roomCode}?username=${username}`);
+    router.push(`/lobby/${roomCode}?username=${username}`);
   };
 
   return (
