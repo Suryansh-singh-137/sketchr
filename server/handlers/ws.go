@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"fmt"
-	"net/http"
-	"time"
+    "fmt"
+    "net/http"
+    "time"
 
-	"github.com/Suryansh-singh-137/sketchr-server/hub"
-	"github.com/Suryansh-singh-137/sketchr-server/room"
-	"github.com/gorilla/websocket"
+    "github.com/Suryansh-singh-137/sketchr-server/models"
+    "github.com/Suryansh-singh-137/sketchr-server/room"
+    "github.com/gorilla/websocket"
 )
 
 var upgrader = websocket.Upgrader{
@@ -16,42 +16,46 @@ var upgrader = websocket.Upgrader{
     },
 }
 
-func ServeWs(w http.ResponseWriter, r *http.Request,  rm *room.RoomManager) {
-    code:= r.URL.Query().Get("room");
-      username:= r.URL.Query().Get("username");
-    if code == ""{
-  http.Error(w, "code cannot be empty", http.StatusInternalServerError)
-  return 
+func ServeWs(w http.ResponseWriter, r *http.Request, rm *room.RoomManager) {
+    code := r.URL.Query().Get("room")
+    username := r.URL.Query().Get("username")
+
+    if code == "" {
+        http.Error(w, "room code required", http.StatusBadRequest)
+        return
     }
-  foundRoom  ,  exists := rm.GetRoom(code)
-  if !exists {
-    http.Error(w, "room not found", http.StatusNotFound)
-    return 
-  }
-  if len(foundRoom.Clients)>= foundRoom.MaxPlayers { 
-     http.Error(w, "room is full", http.StatusForbidden)
-    return
-  }
-  
+
+    if username == "" {
+        username = "Anonymous"
+    }
+
+    foundRoom, exists := rm.GetRoom(code)
+    if !exists {
+        http.Error(w, "room not found", http.StatusNotFound)
+        return
+    }
+
+    if len(foundRoom.Clients) >= foundRoom.MaxPlayers {
+        http.Error(w, "room is full", http.StatusForbidden)
+        return
+    }
 
     connection, err := upgrader.Upgrade(w, r, nil)
     if err != nil {
-        http.Error(w, "not able to upgrade the conn", http.StatusInternalServerError)
+        http.Error(w, "upgrade failed", http.StatusInternalServerError)
         return
     }
-    
-c := hub.Client{
-    ID:   fmt.Sprintf("%d", time.Now().UnixNano()),
-       Username: username,
-    Conn: connection,
-    Send: make(chan []byte, 236),
-}
-foundRoom.Register <- &c
- go c.ReadPump(foundRoom.Broadcast,foundRoom.Unregister)
-go c.WritePump()  
-// registering the joined user ,username so that we can retrieve it in fromtend if the page gets reloaded during lobby 
-if username == "" {
-    username = "Anonymous"
-}
-foundRoom.Players = append(foundRoom.Players, username)
+
+    c := models.Client{
+        ID:       fmt.Sprintf("%d", time.Now().UnixNano()),
+        Username: username,
+        Conn:     connection,
+        Send:     make(chan []byte, 256),
+    }
+
+    foundRoom.Register <- &c
+    foundRoom.Players = append(foundRoom.Players, username)
+
+    go c.ReadPump(foundRoom.Incoming, foundRoom.Unregister)
+    go c.WritePump()
 }

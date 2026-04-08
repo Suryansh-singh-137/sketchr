@@ -4,97 +4,78 @@ import (
 	"math/rand"
 	"sync"
 
-	"github.com/Suryansh-singh-137/sketchr-server/hub"
+	"github.com/Suryansh-singh-137/sketchr-server/models"
 )
 
 type Room struct {
-	ID           string     `json:"id"`
-	Clients      map[*hub.Client]bool `json:"clients"`
-	Broadcast    chan []byte `json:"broadcast"`
-	Register     chan *hub.Client  `json:"register"`
-	Unregister   chan *hub.Client `json:"unregister"`
-	MaxPlayers   int `json:"maxplayer"` 
-	IsGameActive bool `json:"isgameactive"` 
-	DrawTime int  `json:"drawtime"` 
-	Rounds   int  `json:"rounds"` 
-	Host  string `json:"host"` 
-	Players  []string  `json:"players"` 
+    ID           string                      `json:"id"`
+    Clients      map[*models.Client]bool     `json:"clients"`
+    Incoming     chan []byte                
+    Register     chan *models.Client
+    Unregister   chan *models.Client
+    MaxPlayers   int                         `json:"maxPlayers"`
+    IsGameActive bool                        `json:"isGameActive"`
+    DrawTime     int                         `json:"drawTime"`
+    Rounds       int                         `json:"rounds"`
+    Host         string                      `json:"host"`
+    Players      []string                    `json:"players"`
+    // Game state
+    CurrentWord   string
+    CurrentDrawer string
+    CurrentRound  int
+    Scores        map[string]int
+    TurnIndex     int
 }
-// genrate a uniue  room code of 6 charcter 
 
-func generateRoomCode()string {
- chars := []string {"aus","tra","vis","head","137","travis","gng","cwc"}
- code :="" 
+func generateRoomCode() string {
+    chars := []string{"aus", "tra", "vis", "head", "137", "travis", "gng", "cwc"}
+    code := ""
+    for i := 0; i <= 1; i++ {
+        code += chars[rand.Intn(len(chars))]
+    }
+    return code
+}
 
-for i := 0; i <= 1; i++ {
-    code += chars[rand.Intn(len(chars))]
+func NewRoom(host string) *Room {
+    return &Room{
+        ID:         generateRoomCode(),
+        Clients:    make(map[*models.Client]bool),
+        Incoming:   make(chan []byte),
+        Register:   make(chan *models.Client),
+        Unregister: make(chan *models.Client),
+        MaxPlayers: 8,
+        IsGameActive: false,
+        DrawTime:   80,
+        Rounds:     3,
+        Host:       host,
+        Players:    []string{},
+        Scores:     make(map[string]int),
+        TurnIndex:  0,
+    }
 }
- 
- return  code
-}
-//  new room is getting created with fresh id  ,maxplayer  , and channel intialising for tht particular room 
-func NewRoom(host string) *Room{
- return   &Room{
-	ID:  generateRoomCode(),
-	Clients:  make(map[*hub.Client]bool),
-	Broadcast:  make(chan []byte),
-	Register:  make(chan *hub.Client),
-	Unregister: make(chan *hub.Client),
-	MaxPlayers:  8,
-	IsGameActive:  false,
-	DrawTime: 80,
-Rounds:   3,
-Host: host,
-Players:  []string{},
 
- }
-} 
-//  room  manager struct  code -> room struct
-type RoomManager struct{
-	Rooms map[string]*Room
-	mu sync.Mutex
+type RoomManager struct {
+    Rooms map[string]*Room
+    mu    sync.Mutex
 }
-// newroommanager  
+
 func NewRoomManager() *RoomManager {
-	return &RoomManager{
-		Rooms: make(map[string]*Room),
-	}
+    return &RoomManager{
+        Rooms: make(map[string]*Room),
+    }
 }
-// creatoing a new room  
-func (rm *RoomManager) CreateRoom(host string) *Room{
-	
-	room:=NewRoom(host)
-	rm.mu.Lock()
-	rm.Rooms[room.ID] =room
-		defer rm.mu.Unlock()
-return  room
+
+func (rm *RoomManager) CreateRoom(host string) *Room {
+    room := NewRoom(host)
+    rm.mu.Lock()
+    defer rm.mu.Unlock()
+    rm.Rooms[room.ID] = room
+    return room
 }
 
 func (rm *RoomManager) GetRoom(id string) (*Room, bool) {
-  rm.mu.Lock()
-	room ,exists:= rm.Rooms[id]
-	defer  rm.mu.Unlock()
-	return room ,exists
-}
-//  fxn to run the room whix is crearted 
-func (r *Room) Run(){
-	for{
-		select {
-		case Clients :=  <- r.Register:
-			r.Clients[Clients] = true
-	case client := <-r.Unregister:
-    delete(r.Clients, client)
-    // Players slice se username hatao
-    for i, p := range r.Players {
-        if p == client.Username {
-            r.Players = append(r.Players[:i], r.Players[i+1:]...)
-            break
-        }
-    }
-		case message := <- r.Broadcast:
-		for client := range r.Clients {
-    client.Send <- message
-}
-		}
-	}
+    rm.mu.Lock()
+    defer rm.mu.Unlock()
+    room, exists := rm.Rooms[id]
+    return room, exists
 }
