@@ -32,7 +32,7 @@ func (r *Room) routeMessage(message []byte) {
     case "chat":
         r.broadcastToAll(message)
     case "game_start":
-        // go r.StartGame()  ← baad mein
+        go r.StartGame()  
         r.broadcastToAll(message)
     case "player_joined":
         r.broadcastToAll(message)
