@@ -83,9 +83,7 @@ export default function LobbyPage() {
             )
           }
           className="px-4 py-2 bg-zinc-700 rounded-lg text-sm"
-        >
-          🔗 Copy Invite Link
-        </button>
+        ></button>
 
         <div>
           <h2 className="text-zinc-400 text-sm mb-2">
