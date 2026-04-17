@@ -30,7 +30,7 @@ func (r *Room) routeMessage(message []byte) {
     case "draw", "clear":
         r.broadcastToAll(message)
     case "chat":
-        r.broadcastToAll(message)
+        r.handleChat(message)
     case "game_start":
         go r.StartGame()  
         r.broadcastToAll(message)

@@ -3,6 +3,7 @@ package room
 import (
 	"math/rand"
 	"sync"
+	"time"
 
 	"github.com/Suryansh-singh-137/sketchr-server/models"
 )
@@ -25,6 +26,8 @@ type Room struct {
     CurrentRound  int
     Scores        map[string]int
     TurnIndex     int
+     GameTimer     *time.Timer 
+    
 }
 
 func generateRoomCode() string {

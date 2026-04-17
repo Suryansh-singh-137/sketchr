@@ -13,7 +13,7 @@ var words = []string{
     "helicopter", "butterfly", "waterfall", "diamond", "jungle",
     "penguin", "lighthouse", "saxophone", "tornado", "astronaut",
 }
-func getRandomeWord() string{
+func getRandomWord() string{
 	return  words[rand.Intn(len(words))]
 }
 func (r *Room) StartNextTurn() {
@@ -101,6 +101,7 @@ func (r *Room) startTimer() {
 }
 
 func (r *Room) EndTurn() {
+    
     // Timer cancel karo
     if r.GameTimer != nil {
         r.GameTimer.Stop()
@@ -161,7 +162,7 @@ func (r *Room) handleChat(message []byte) {
 }
 func  (r *Room)StartGame(){
 	r.IsGameActive =  true 
-	r.CurrentWord =  "1";
+	
 	r.TurnIndex  = 0
 	for _,p := range r.Players{
 		r.Scores[p] = 0
