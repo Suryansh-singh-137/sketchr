@@ -1,10 +1,11 @@
-package room 
+package room
+
 import (
-    "encoding/json"
-    "fmt"
-    "math/rand"
-    "strings"
-    "time"
+	"encoding/json"
+	"fmt"
+	"math/rand"
+	"strings"
+	"time"
 )
 var words = []string{
     "elephant", "guitar", "pizza", "mountain", "bicycle",
