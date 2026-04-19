@@ -6,6 +6,7 @@ interface CanvasProps {
   wsRef: React.MutableRefObject<WebSocket | null>;
   lastStroke: StrokeData | null;
   shouldClear: boolean;
+
   onClearDone: () => void;
 }
 interface StrokeData {
